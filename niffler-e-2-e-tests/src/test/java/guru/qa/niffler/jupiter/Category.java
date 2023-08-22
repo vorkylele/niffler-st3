@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith({CategoryExtension.class, CategoryExtensionParametrResolver.class})
+@ExtendWith({CategoryExtension.class})
 public @interface Category {
 
     String category();
