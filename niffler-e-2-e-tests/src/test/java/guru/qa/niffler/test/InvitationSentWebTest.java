@@ -28,7 +28,7 @@ public class InvitationSentWebTest extends BaseWebTest {
 
     @Test
     @AllureId("104")
-    void friendInviteShouldBeDisplayedInTable0(@User(userType = User.UserType.INVITATION_SENT) UserJson userForTest) {
+    void friendInviteShouldBeDisplayedInTable0() {
         $("[data-tooltip-id=people]").click();
         userTable.shouldBe(visible);
         userTable.$("tbody").$$("tr")
@@ -38,7 +38,7 @@ public class InvitationSentWebTest extends BaseWebTest {
 
     @Test
     @AllureId("105")
-    void friendInviteShouldBeDisplayedInTable1(@User(userType = User.UserType.INVITATION_SENT) UserJson userForTest) {
+    void friendInviteShouldBeDisplayedInTable1() {
         $("[data-tooltip-id=people]").click();
         userTable.shouldBe(visible);
         userTable.$("tbody").$$("tr")

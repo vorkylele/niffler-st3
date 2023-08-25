@@ -28,7 +28,7 @@ public class FriendsWebTest extends BaseWebTest {
 
     @Test
     @AllureId("101")
-    void friendShouldBeDisplayedInTable0(@User(userType = User.UserType.WITH_FRIENDS) UserJson userForTest) {
+    void friendShouldBeDisplayedInTable0() {
         $("[data-tooltip-id=friends]").click();
         friendsTable.shouldBe(visible);
         friendsTable.$("tbody").$$("tr")
@@ -39,7 +39,7 @@ public class FriendsWebTest extends BaseWebTest {
 
     @Test
     @AllureId("102")
-    void friendShouldBeDisplayedInTable1(@User(userType = User.UserType.WITH_FRIENDS) UserJson userForTest) {
+    void friendShouldBeDisplayedInTable1() {
         $("[data-tooltip-id=friends]").click();
         friendsTable.shouldBe(visible);
         friendsTable.$("tbody").$$("tr")
