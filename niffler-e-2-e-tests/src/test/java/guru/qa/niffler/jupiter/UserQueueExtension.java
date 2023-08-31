@@ -40,27 +40,36 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        Parameter[] parameters = context.getRequiredTestMethod().getParameters();
+        Optional<Method> beforeEach = Arrays.stream(context.getRequiredTestClass().getDeclaredMethods())
+                .filter(method -> method.isAnnotationPresent(BeforeEach.class))
+                .findFirst();
+        Parameter[] parameters = beforeEach.map(Executable::getParameters)
+                .orElseGet(() -> context.getRequiredTestMethod().getParameters());
+
+        Map<User.UserType, UserJson> candidatesForTest = new ConcurrentHashMap<>();
+
         for (Parameter parament : parameters) {
             if (parament.getType().isAssignableFrom(UserJson.class)) {
                 User parameterAnnotation = parament.getAnnotation(User.class);
                 User.UserType userType = parameterAnnotation.userType();
-                Queue<UserJson> usersQueueByType = usersQueue.get(parameterAnnotation.userType());
+                Queue<UserJson> usersQueueByType = usersQueue.get(userType);
                 UserJson candidateForTest = null;
                 while (candidateForTest == null) {
                     candidateForTest = usersQueueByType.poll();
                 }
                 candidateForTest.setUserType(userType);
-                context.getStore(NAMESPACEUSER).put(getAllureId(context), candidateForTest);
-                break;
+                candidatesForTest.put(userType, candidateForTest);
             }
         }
+        context.getStore(NAMESPACEUSER).put(getAllureId(context), candidatesForTest);
     }
 
     @Override
     public void afterTestExecution(ExtensionContext context) throws Exception {
-        UserJson userFromTest = context.getStore(NAMESPACEUSER).get(getAllureId(context), UserJson.class);
-        usersQueue.get(userFromTest.getUserType()).add(userFromTest);
+        Map<User.UserType, UserJson> usersFromTest = context.getStore(NAMESPACEUSER).get(getAllureId(context), Map.class);
+        for (User.UserType userTypeFromTest: usersFromTest.keySet()) {
+            usersQueue.get(userTypeFromTest).add(usersFromTest.get(userTypeFromTest));
+        }
     }
 
     @Override
@@ -71,7 +80,8 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
 
     @Override
     public UserJson resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return extensionContext.getStore(NAMESPACEUSER).get(getAllureId(extensionContext), UserJson.class);
+        User.UserType userType = parameterContext.getParameter().getAnnotation(User.class).userType();
+        return (UserJson) extensionContext.getStore(NAMESPACEUSER).get(getAllureId(extensionContext), Map.class).get(userType);
     }
 
     private String getAllureId(ExtensionContext context) {

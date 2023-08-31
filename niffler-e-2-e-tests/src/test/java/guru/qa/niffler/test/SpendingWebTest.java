@@ -50,7 +50,7 @@ public class SpendingWebTest extends BaseWebTest {
     )
     @Test
     @AllureId("100")
-    void spendingShouldBeDeletedAfterDeleteAction(SpendJson createdSpend, @User(userType = WITH_FRIENDS) UserJson userForTest) {
+    void spendingShouldBeDeletedAfterDeleteAction(SpendJson createdSpend) {
         $(".spendings__content tbody")
                 .$$("tr")
                 .find(text(createdSpend.getDescription()))

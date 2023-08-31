@@ -9,16 +9,15 @@ import io.qameta.allure.AllureId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 
-public class FriendsWebTest extends BaseWebTest {
+public class InvitationReceivedWebTest extends BaseWebTest {
 
     SelenideElement friendsTable = $(".people-content").$(".table");
 
     @BeforeEach
-    void doLogin(@User(userType = User.UserType.WITH_FRIENDS) UserJson userForTest) {
+    void doLogin(@User(userType = User.UserType.INVITATION_RECEIVED) UserJson userForTest) {
         Selenide.open("http://127.0.0.1:3000/main");
         $("a[href*='redirect']").click();
         $("input[name='username']").setValue(userForTest.getUsername());
@@ -27,35 +26,28 @@ public class FriendsWebTest extends BaseWebTest {
     }
 
     @Test
-    @AllureId("101")
-    void friendShouldBeDisplayedInTable0() {
+    @AllureId("106")
+    void friendInvitationReceivedShouldBeDisplayedInTable0() {
         $("[data-tooltip-id=friends]").click();
         friendsTable.shouldBe(visible);
         friendsTable.$("tbody").$$("tr")
                 .shouldHave(CollectionCondition.size(1));
-        friendsTable.$("tbody").$("tr").$("td:nth-child(4)").
-                shouldHave(text("You are friends"));
+        friendsTable.$("tbody").$("tr")
+                .$("td:nth-child(4)")
+                .$("[data-tooltip-id='submit-invitation']")
+                .shouldHave(visible);
     }
 
     @Test
-    @AllureId("102")
-    void friendShouldBeDisplayedInTable1() {
+    @AllureId("107")
+    void friendInvitationReceivedShouldBeDisplayedInTable1() {
         $("[data-tooltip-id=friends]").click();
         friendsTable.shouldBe(visible);
         friendsTable.$("tbody").$$("tr")
                 .shouldHave(CollectionCondition.size(1));
-        friendsTable.$("tbody").$("tr").$("td:nth-child(4)").
-                shouldHave(text("You are friends"));
-    }
-
-    @Test
-    @AllureId("103")
-    void friendShouldBeDisplayedInTable2() {
-        $("[data-tooltip-id=friends]").click();
-        friendsTable.shouldBe(visible);
-        friendsTable.$("tbody").$$("tr")
-                .shouldHave(CollectionCondition.size(1));
-        friendsTable.$("tbody").$("tr").$("td:nth-child(4)").
-                shouldHave(text("You are friends"));
+        friendsTable.$("tbody").$("tr")
+                .$("td:nth-child(4)")
+                .$("[data-tooltip-id='submit-invitation']")
+                .shouldHave(visible);
     }
 }
