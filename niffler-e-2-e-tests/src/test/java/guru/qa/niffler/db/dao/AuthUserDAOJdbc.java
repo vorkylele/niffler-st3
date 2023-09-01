@@ -76,7 +76,81 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
 
     @Override
     public void deleteUser(UUID userId) {
+        try (Connection conn = ds.getConnection()) {
+            conn.setAutoCommit(false);
+            try (
+                    PreparedStatement authorityPs = conn.prepareStatement(
+                            "DELETE FROM authorities WHERE user_id=?");
+                    PreparedStatement usersPs = conn.prepareStatement(
+                            "DELETE FROM users WHERE id=?")
+            ) {
 
+                usersPs.setObject(1, userId);
+                authorityPs.setObject(1, userId);
+                authorityPs.executeUpdate();
+                usersPs.executeUpdate();
+                conn.commit();
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
+                conn.rollback();
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public UserEntity getUser(UUID userId) {
+        UserEntity user = new UserEntity();
+        try (Connection conn = ds.getConnection()) {
+            try (PreparedStatement userPs = conn.prepareStatement(
+                    "SELECT * FROM users WHERE id = ? "
+            )) {
+                userPs.setObject(1, userId);
+                userPs.execute();
+
+                ResultSet resultSet = userPs.getResultSet();
+                while (resultSet.next()) {
+                    user.setId(resultSet.getObject("id", UUID.class));
+                    user.setUsername(resultSet.getString("username"));
+                    user.setPassword(resultSet.getString("password"));
+                    user.setEnabled(resultSet.getBoolean("enabled"));
+                    user.setAccountNonExpired(resultSet.getBoolean("account_non_expired"));
+                    user.setAccountNonLocked(resultSet.getBoolean("account_non_locked"));
+                    user.setCredentialsNonExpired(resultSet.getBoolean("credentials_non_expired"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+
+        }
+        return user;
+    }
+
+    @Override
+    public void updateUser(UserEntity user) {
+        try (Connection conn = ds.getConnection()) {
+            try (PreparedStatement userPs = conn.prepareStatement(
+                    "UPDATE users SET " +
+                            "password = ?" +
+                            "enabled = ?" +
+                            "account_non_expired = ?, " +
+                            "account_non_locked = ? , " +
+                            "credentials_non_expired = ? " +
+                            "WHERE id = ? "
+            )) {
+                userPs.setString(1, pe.encode(user.getPassword()));
+                userPs.setBoolean(2, user.getEnabled());
+                userPs.setBoolean(3, user.getAccountNonExpired());
+                userPs.setBoolean(4, user.getAccountNonLocked());
+                userPs.setBoolean(5, user.getCredentialsNonExpired());
+                userPs.setObject(6, user.getId());
+                userPs.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -100,7 +174,15 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public void deleteUserInUserData(UUID userId) {
-
+    public void deleteUserInUserData(String username) {
+        try (Connection conn = userDataDS.getConnection()) {
+            try (PreparedStatement userPs = conn.prepareStatement(
+                    "DELETE FROM users WHERE username=?")) {
+                userPs.setString(1, username);
+                userPs.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
