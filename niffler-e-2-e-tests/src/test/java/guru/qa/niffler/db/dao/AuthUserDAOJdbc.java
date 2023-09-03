@@ -4,6 +4,7 @@ import guru.qa.niffler.db.DataSourceProvider;
 import guru.qa.niffler.db.ServiceDB;
 import guru.qa.niffler.db.model.Authority;
 import guru.qa.niffler.db.model.CurrencyValues;
+import guru.qa.niffler.db.model.UserDataEntity;
 import guru.qa.niffler.db.model.UserEntity;
 
 import javax.sql.DataSource;
@@ -13,10 +14,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
-public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
+public class AuthUserDAOJdbc implements AuthUserDAO {
 
     private static DataSource ds = DataSourceProvider.INSTANCE.getDataSource(ServiceDB.AUTh);
-    private static DataSource userDataDS = DataSourceProvider.INSTANCE.getDataSource(ServiceDB.USERDATA);
 
     @Override
     public int createUser(UserEntity user) {
@@ -146,39 +146,6 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
                 userPs.setBoolean(4, user.getAccountNonLocked());
                 userPs.setBoolean(5, user.getCredentialsNonExpired());
                 userPs.setObject(6, user.getId());
-                userPs.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public int createUserInUserData(UserEntity user) {
-        int createdRows = 0;
-        try (Connection conn = userDataDS.getConnection()) {
-            try (PreparedStatement usersPs = conn.prepareStatement(
-                    "INSERT INTO users (username, currency) " +
-                            "VALUES (?, ?)", PreparedStatement.RETURN_GENERATED_KEYS)) {
-
-                usersPs.setString(1, user.getUsername());
-                usersPs.setString(2, CurrencyValues.RUB.name());
-
-                createdRows = usersPs.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        return createdRows;
-    }
-
-    @Override
-    public void deleteUserInUserData(String username) {
-        try (Connection conn = userDataDS.getConnection()) {
-            try (PreparedStatement userPs = conn.prepareStatement(
-                    "DELETE FROM users WHERE username=?")) {
-                userPs.setString(1, username);
                 userPs.executeUpdate();
             }
         } catch (SQLException e) {

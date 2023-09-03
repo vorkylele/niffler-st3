@@ -43,7 +43,7 @@ public class LoginTest extends BaseWebTest {
                     return ae;
                 }).toList());
         authUserDAO.createUser(user);
-        userDataUserDAO.createUserInUserData(user);
+        userDataUserDAO.createUser(user);
     }
 
     @AfterEach
