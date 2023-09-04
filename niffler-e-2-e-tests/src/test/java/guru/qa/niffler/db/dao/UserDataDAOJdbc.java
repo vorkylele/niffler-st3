@@ -82,10 +82,10 @@ public class UserDataDAOJdbc implements UserDataUserDAO {
         try (Connection conn = ds.getConnection()) {
             try (PreparedStatement userPs = conn.prepareStatement(
                     "UPDATE users SET " +
-                            "currency = ?" +
-                            "firstname = ?" +
+                            "currency = ?, " +
+                            "firstname = ?, " +
                             "surname = ?, " +
-                            "photo = ? , " +
+                            "photo = ? " +
                             "WHERE id = ? "
             )) {
                 userPs.setString(1, user.getCurrency().name());
