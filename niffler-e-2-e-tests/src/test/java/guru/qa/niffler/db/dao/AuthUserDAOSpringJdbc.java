@@ -17,7 +17,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 import java.util.UUID;
 
 public class AuthUserDAOSpringJdbc implements AuthUserDAO, UserDataUserDAO {
