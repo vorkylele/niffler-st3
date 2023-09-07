@@ -30,7 +30,7 @@ public class LoginTest extends BaseWebTest {
     @BeforeEach
     void createUser() {
         user = new UserEntity();
-        user.setUsername("valentin_0");
+        user.setUsername("valentin_4");
         user.setPassword("12345");
         user.setEnabled(true);
         user.setAccountNonExpired(true);
@@ -43,7 +43,7 @@ public class LoginTest extends BaseWebTest {
                     return ae;
                 }).toList());
         authUserDAO.createUser(user);
-        userDataUserDAO.createUser(user);
+        userDataUserDAO.createUserFromUserData(user);
     }
 
     @AfterEach
