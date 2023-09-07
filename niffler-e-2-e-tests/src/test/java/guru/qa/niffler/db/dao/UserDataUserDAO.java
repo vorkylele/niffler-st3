@@ -5,11 +5,11 @@ import guru.qa.niffler.db.model.UserEntity;
 
 public interface UserDataUserDAO {
 
-    int createUser(UserEntity user);
+    int createUserFromUserData(UserEntity user);
 
-    void deleteUser(String username);
+    void deleteUserFromUserData(String username);
 
-    UserDataEntity getUser(String username);
+    UserDataEntity getUserFromUserData(String username);
 
-    void updateUser(UserDataEntity user);
+    void updateUserInUserData(UserDataEntity user);
 }
