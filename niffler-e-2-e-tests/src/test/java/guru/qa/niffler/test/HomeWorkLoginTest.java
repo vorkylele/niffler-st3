@@ -10,7 +10,7 @@ import static com.codeborne.selenide.Selenide.$;
 
 public class HomeWorkLoginTest extends BaseWebTest {
 
-    @DBUser(username = "user_test_1", password = "12345")
+    @DBUser
     @Test
     void mainPageShouldBeVisibleAfterLogin(UserEntity user) {
         Selenide.open("http://127.0.0.1:3000/main");
