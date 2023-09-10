@@ -10,6 +10,8 @@ public interface Config {
     }
 
     String databaseHost();
+    String nifflerSpendUrl();
+    String nifflerCategoryUrl();
 
     default String databaseUser() {
         return "postgres";

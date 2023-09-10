@@ -1,31 +1,33 @@
-package guru.qa.niffler.jupiter;
+package guru.qa.niffler.jupiter.extension;
 
 import com.github.javafaker.Faker;
-import guru.qa.niffler.db.dao.AuthUserDAO;
-import guru.qa.niffler.db.dao.AuthUserDAOSpringJdbc;
-import guru.qa.niffler.db.dao.UserDataUserDAO;
-import guru.qa.niffler.db.model.Authority;
-import guru.qa.niffler.db.model.AuthorityEntity;
-import guru.qa.niffler.db.model.UserEntity;
+import guru.qa.niffler.db.dao.*;
+import guru.qa.niffler.db.dao.impl.AuthUserDAOHibernate;
+import guru.qa.niffler.db.dao.impl.UserDataDAOHibernate;
+import guru.qa.niffler.db.model.auth.Authority;
+import guru.qa.niffler.db.model.auth.AuthorityEntity;
+import guru.qa.niffler.db.model.auth.AuthUserEntity;
+import guru.qa.niffler.jupiter.annotation.DBUser;
 import org.junit.jupiter.api.extension.*;
 
 import java.util.Arrays;
-import java.util.UUID;
+
+import static guru.qa.niffler.db.model.CurrencyValues.RUB;
 
 public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCallback, ParameterResolver {
 
     public static ExtensionContext.Namespace NAMESPACEDBUSER = ExtensionContext.Namespace.create(DBUserExtension.class);
-    private AuthUserDAO authUserDAO = new AuthUserDAOSpringJdbc();
-    private UserDataUserDAO userDataUserDAO = new AuthUserDAOSpringJdbc();
+    private AuthUserDAO authUserDAO = new AuthUserDAOHibernate();
+    private UserDataUserDAO userDataUserDAO = new UserDataDAOHibernate();
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
         if (context.getRequiredTestMethod().isAnnotationPresent(DBUser.class)) {
             DBUser annotation = context.getRequiredTestMethod().getAnnotation(DBUser.class);
-            UserEntity user = convertToUserEntity(annotation);
-            UUID uuid = authUserDAO.createUser(user);
-            user.setId(uuid);
-            userDataUserDAO.createUserFromUserData(user);
+            AuthUserEntity user = convertToUserEntity(annotation);
+            authUserDAO.createUser(user);
+            AuthUserEntity userAuthFromDb = authUserDAO.getUserByName(user.getUsername());
+            userDataUserDAO.createUserInUserData(userAuthFromDb.toUserDataEntity(RUB));
 
             context.getStore(NAMESPACEDBUSER).put(context.getUniqueId(), user);
         }
@@ -33,27 +35,27 @@ public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCa
 
     @Override
     public void afterTestExecution(ExtensionContext context) throws Exception {
-        UserEntity user = context.getStore(NAMESPACEDBUSER).get(context.getUniqueId(), UserEntity.class);
+        AuthUserEntity user = context.getStore(NAMESPACEDBUSER).get(context.getUniqueId(), AuthUserEntity.class);
         userDataUserDAO.deleteUserFromUserData(user.getUsername());
-        authUserDAO.deleteUser(user.getId());
+        authUserDAO.deleteUser(user);
     }
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         return parameterContext.getParameter()
                 .getType()
-                .isAssignableFrom(UserEntity.class);
+                .isAssignableFrom(AuthUserEntity.class);
     }
 
     @Override
-    public UserEntity resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
+    public AuthUserEntity resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         return extensionContext
                 .getStore(NAMESPACEDBUSER)
-                .get(extensionContext.getUniqueId(), UserEntity.class);
+                .get(extensionContext.getUniqueId(), AuthUserEntity.class);
     }
 
-    private UserEntity convertToUserEntity(DBUser dbUser) {
-        UserEntity user = new UserEntity();
+    private AuthUserEntity convertToUserEntity(DBUser dbUser) {
+        AuthUserEntity user = new AuthUserEntity();
         Faker faker = Faker.instance();
 
         user.setUsername(dbUser.username().isBlank() ? faker.name().username() : dbUser.username());
@@ -66,6 +68,7 @@ public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCa
                 .map(a -> {
                     AuthorityEntity ae = new AuthorityEntity();
                     ae.setAuthority(a);
+                    ae.setUser(user);
                     return ae;
                 }).toList());
         return user;

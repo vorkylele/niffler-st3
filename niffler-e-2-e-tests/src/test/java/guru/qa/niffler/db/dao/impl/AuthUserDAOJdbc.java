@@ -1,8 +1,14 @@
-package guru.qa.niffler.db.dao;
+package guru.qa.niffler.db.dao.impl;
 
-import guru.qa.niffler.db.DataSourceProvider;
+import guru.qa.niffler.db.jdbc.DataSourceProvider;
 import guru.qa.niffler.db.ServiceDB;
+import guru.qa.niffler.db.dao.AuthUserDAO;
+import guru.qa.niffler.db.dao.UserDataUserDAO;
 import guru.qa.niffler.db.model.*;
+import guru.qa.niffler.db.model.auth.Authority;
+import guru.qa.niffler.db.model.auth.AuthorityEntity;
+import guru.qa.niffler.db.model.auth.AuthUserEntity;
+import guru.qa.niffler.db.model.userdata.UserDataEntity;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -15,14 +21,14 @@ import java.util.UUID;
 
 public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
 
-    private static DataSource ds = DataSourceProvider.INSTANCE.getDataSource(ServiceDB.AUTh);
+    private static DataSource authDs = DataSourceProvider.INSTANCE.getDataSource(ServiceDB.AUTh);
     private static DataSource userDataDs = DataSourceProvider.INSTANCE.getDataSource(ServiceDB.USERDATA);
 
     @Override
-    public UUID createUser(UserEntity user) {
+    public int createUser(AuthUserEntity user) {
         UUID generatedUserId = null;
 
-        try (Connection conn = ds.getConnection()) {
+        try (Connection conn = authDs.getConnection()) {
             conn.setAutoCommit(false);
 
             try (PreparedStatement usersPs = conn.prepareStatement(
@@ -70,12 +76,39 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
             throw new RuntimeException(e);
         }
 
-        return generatedUserId;
+        return 0;
     }
 
     @Override
-    public void deleteUser(UUID userId) {
-        try (Connection conn = ds.getConnection()) {
+    public AuthUserEntity updateUser(AuthUserEntity user) {
+        try (Connection conn = authDs.getConnection()) {
+            try (PreparedStatement userPs = conn.prepareStatement(
+                    "UPDATE users SET " +
+                            "password = ?" +
+                            "enabled = ?" +
+                            "account_non_expired = ?, " +
+                            "account_non_locked = ? , " +
+                            "credentials_non_expired = ? " +
+                            "WHERE id = ? "
+            )) {
+                userPs.setString(1, pe.encode(user.getPassword()));
+                userPs.setBoolean(2, user.getEnabled());
+                userPs.setBoolean(3, user.getAccountNonExpired());
+                userPs.setBoolean(4, user.getAccountNonLocked());
+                userPs.setBoolean(5, user.getCredentialsNonExpired());
+                userPs.setObject(6, user.getId());
+                userPs.executeUpdate();
+
+                return user;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void deleteUser(AuthUserEntity user) {
+        try (Connection conn = authDs.getConnection()) {
             conn.setAutoCommit(false);
             try (
                     PreparedStatement authorityPs = conn.prepareStatement(
@@ -84,10 +117,12 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
                             "DELETE FROM users WHERE id=?")
             ) {
 
-                usersPs.setObject(1, userId);
-                authorityPs.setObject(1, userId);
+                authorityPs.setObject(1, user.getId());
                 authorityPs.executeUpdate();
+
+                usersPs.setObject(1, user.getId());
                 usersPs.executeUpdate();
+
                 conn.commit();
                 conn.setAutoCommit(true);
             } catch (SQLException e) {
@@ -101,9 +136,9 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public UserEntity getUser(UUID userId) {
-        UserEntity user = new UserEntity();
-        try (Connection conn = ds.getConnection()) {
+    public AuthUserEntity getUserById(UUID userId) {
+        AuthUserEntity user = new AuthUserEntity();
+        try (Connection conn = authDs.getConnection()) {
             try (PreparedStatement userPs = conn.prepareStatement(
                     "SELECT * FROM users WHERE id = ? ")) {
                 userPs.setObject(1, userId);
@@ -143,34 +178,49 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
     }
 
     @Override
-    public void updateUser(UserEntity user) {
-        try (Connection conn = ds.getConnection()) {
-            try (PreparedStatement userPs = conn.prepareStatement(
-                    "UPDATE users SET " +
-                            "password = ?" +
-                            "enabled = ?" +
-                            "account_non_expired = ?, " +
-                            "account_non_locked = ? , " +
-                            "credentials_non_expired = ? " +
-                            "WHERE id = ? "
-            )) {
-                userPs.setString(1, pe.encode(user.getPassword()));
-                userPs.setBoolean(2, user.getEnabled());
-                userPs.setBoolean(3, user.getAccountNonExpired());
-                userPs.setBoolean(4, user.getAccountNonLocked());
-                userPs.setBoolean(5, user.getCredentialsNonExpired());
-                userPs.setObject(6, user.getId());
-                userPs.executeUpdate();
+    public AuthUserEntity getUserByName(String name) {
+        AuthUserEntity user = new AuthUserEntity();
+        try (Connection conn = authDs.getConnection()) {
+            try (PreparedStatement usersPs = conn.prepareStatement(
+                    "SELECT * FROM users WHERE username = ? ")) {
+                usersPs.setString(1, name);
+                usersPs.execute();
+
+                ResultSet resultSet = usersPs.getResultSet();
+                while (resultSet.next()) {
+                    user.setId(resultSet.getObject("id", UUID.class));
+                    user.setUsername(resultSet.getString("username"));
+                    user.setPassword(resultSet.getString("password"));
+                    user.setEnabled(resultSet.getBoolean("enabled"));
+                    user.setAccountNonExpired(resultSet.getBoolean("account_non_expired"));
+                    user.setAccountNonLocked(resultSet.getBoolean("account_non_locked"));
+                    user.setCredentialsNonExpired(resultSet.getBoolean("credentials_non_expired"));
+                }
+            }
+            try (PreparedStatement authPs = conn.prepareStatement(
+                    "SELECT * FROM authorities WHERE user_id=?")) {
+                authPs.setObject(1, user.getId());
+                authPs.execute();
+
+                ResultSet resultSet = authPs.getResultSet();
+                List<AuthorityEntity> authorities = new ArrayList<>();
+                while (resultSet.next()) {
+                    AuthorityEntity authorityEntity = new AuthorityEntity();
+                    authorityEntity.setId(resultSet.getObject("id", UUID.class));
+                    authorityEntity.setAuthority(Authority.valueOf(resultSet.getString("authority")));
+                    authorityEntity.setUser(user);
+                    authorities.add(authorityEntity);
+                }
+                user.setAuthorities(authorities);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        return user;
     }
 
-    // UserData
-
     @Override
-    public int createUserFromUserData(UserEntity user) {
+    public int createUserInUserData(UserDataEntity user) {
         int createdRows = 0;
         try (Connection conn = userDataDs.getConnection()) {
             try (PreparedStatement usersPs = conn.prepareStatement(
