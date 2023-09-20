@@ -11,4 +11,14 @@ public class LocalConfig implements Config {
     public String databaseHost() {
         return "localhost";
     }
+
+    @Override
+    public String nifflerSpendUrl() {
+        return "http://127.0.0.1:8093";
+    }
+
+    @Override
+    public String nifflerCategoryUrl() {
+        return "http://127.0.0.1:8093";
+    }
 }

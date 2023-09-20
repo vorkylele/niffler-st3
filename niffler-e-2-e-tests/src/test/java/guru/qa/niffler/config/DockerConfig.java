@@ -10,4 +10,14 @@ public class DockerConfig implements Config {
     public String databaseHost() {
         return "niffler-all-db";
     }
+
+    @Override
+    public String nifflerSpendUrl() {
+        return "niffler-spend:8093";
+    }
+
+    @Override
+    public String nifflerCategoryUrl() {
+        return "niffler-category:8093";
+    }
 }
