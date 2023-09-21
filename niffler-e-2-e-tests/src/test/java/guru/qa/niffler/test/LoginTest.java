@@ -1,66 +1,20 @@
 package guru.qa.niffler.test;
 
-import com.codeborne.selenide.Selenide;
-import guru.qa.niffler.db.dao.AuthUserDAO;
-import guru.qa.niffler.db.dao.UserDataUserDAO;
-import guru.qa.niffler.db.model.CurrencyValues;
-import guru.qa.niffler.db.model.auth.Authority;
-import guru.qa.niffler.db.model.auth.AuthorityEntity;
 import guru.qa.niffler.db.model.auth.AuthUserEntity;
-import guru.qa.niffler.jupiter.annotation.Dao;
-import guru.qa.niffler.jupiter.extension.DaoExtension;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import guru.qa.niffler.jupiter.annotation.DBUser;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Arrays;
-
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.$;
-
-@ExtendWith(DaoExtension.class)
 public class LoginTest extends BaseWebTest {
 
-    @Dao
-    private AuthUserDAO authUserDAO;
-    @Dao
-    private UserDataUserDAO userDataUserDAO;
-    private AuthUserEntity user;
-
-    @BeforeEach
-    void createUser() {
-        user = new AuthUserEntity();
-        user.setUsername("valentin_4");
-        user.setPassword("12345");
-        user.setEnabled(true);
-        user.setAccountNonExpired(true);
-        user.setAccountNonLocked(true);
-        user.setCredentialsNonExpired(true);
-        user.setAuthorities(Arrays.stream(Authority.values())
-                .map(a -> {
-                    AuthorityEntity ae = new AuthorityEntity();
-                    ae.setAuthority(a);
-                    ae.setUser(user);
-                    return ae;
-                }).toList());
-        authUserDAO.createUser(user);
-        userDataUserDAO.createUserInUserData(user.toUserDataEntity(CurrencyValues.RUB));
-    }
-
-    @AfterEach
-    void deleteUser() {
-        authUserDAO.deleteUser(user);
-    }
-
+    @DBUser
     @Test
-    void mainPageShouldBeVisibleAfterLogin() {
-        Selenide.open("http://127.0.0.1:3000/main");
-        $("a[href*='redirect']").click();
-        $("input[name='username']").setValue(user.getUsername());
-        $("input[name='password']").setValue(user.getPassword());
-        $("button[type='submit']").click();
-        $(".main-content__section-stats").should(visible);
-
+    void mainPageShouldBeVisibleAfterLogin(AuthUserEntity user) {
+        welcomePage
+                .openWelcomePage()
+                .goToLoginPage();
+        loginPage
+                .signInNiffler(user.getUsername(), user.getPassword());
+        mainPage.
+                checkVisibleMainPage();
     }
 }
