@@ -20,4 +20,9 @@ public class DockerConfig implements Config {
     public String nifflerCategoryUrl() {
         return "niffler-category:8093";
     }
+
+    @Override
+    public String baseUri() {
+        return "frontend.niffler.dc";
+    }
 }
