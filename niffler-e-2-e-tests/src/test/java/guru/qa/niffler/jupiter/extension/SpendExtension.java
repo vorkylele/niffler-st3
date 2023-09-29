@@ -9,7 +9,7 @@ import java.util.Date;
 
 public class SpendExtension implements BeforeEachCallback, ParameterResolver {
 
-    public static ExtensionContext.Namespace NAMESPACESPEND = ExtensionContext.Namespace.create(SpendExtension.class);
+    public static ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(SpendExtension.class);
 
     private SpendServiceClient spendService = new SpendServiceClient();
 
@@ -25,7 +25,7 @@ public class SpendExtension implements BeforeEachCallback, ParameterResolver {
             spend.setSpendDate(new Date());
             spend.setCurrency(annotation.currency());
             SpendJson createdSpend = spendService.addSpend(spend);
-            context.getStore(NAMESPACESPEND).put("spend", createdSpend);
+            context.getStore(NAMESPACE).put("spend", createdSpend);
         }
     }
 
@@ -39,7 +39,7 @@ public class SpendExtension implements BeforeEachCallback, ParameterResolver {
     @Override
     public SpendJson resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         return extensionContext
-                .getStore(NAMESPACESPEND)
+                .getStore(NAMESPACE)
                 .get("spend", SpendJson.class);
     }
 }

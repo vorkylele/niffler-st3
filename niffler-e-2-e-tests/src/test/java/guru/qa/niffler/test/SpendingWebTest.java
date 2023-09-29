@@ -9,9 +9,11 @@ import guru.qa.niffler.model.UserJson;
 import io.qameta.allure.AllureId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import static guru.qa.niffler.jupiter.annotation.User.UserType.WITH_FRIENDS;
 
+@Isolated
 public class SpendingWebTest extends BaseWebTest {
 
     @BeforeEach
@@ -38,7 +40,7 @@ public class SpendingWebTest extends BaseWebTest {
     @AllureId("100")
     void spendingShouldBeDeletedAfterDeleteAction(SpendJson createdSpend) {
         mainPage
-                .selectSpendings(createdSpend)
+                .selectSpending(createdSpend)
                 .deleteSpending()
                 .checkDeletedSpending();
     }

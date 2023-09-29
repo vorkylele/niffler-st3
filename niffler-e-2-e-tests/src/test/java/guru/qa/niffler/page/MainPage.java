@@ -5,6 +5,7 @@ import guru.qa.niffler.model.SpendJson;
 import io.qameta.allure.Step;
 
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
@@ -12,7 +13,6 @@ import static com.codeborne.selenide.Selenide.$;
 public class MainPage extends BasePage {
     // Elements
     private final SelenideElement contentOfTableHistoryOfSpendings = $(".spendings__content tbody");
-    private final SelenideElement tableHistoryOfSpendings = $(".spendings-table");
     private final SelenideElement deleteBtn = $(byText("Delete selected"));
     private final SelenideElement mainPage = $(".main-content__section-stats");
     private final SelenideElement friendsBtn = $("[data-tooltip-id=friends]");
@@ -27,9 +27,11 @@ public class MainPage extends BasePage {
     }
 
     @Step("Выбрать spending's в таблице 'History of spendings'")
-    public MainPage selectSpendings(SpendJson createdSpend) {
-        tableHistoryOfSpendings
-                .$$("th")
+    public MainPage selectSpending(SpendJson createdSpend) {
+        contentOfTableHistoryOfSpendings
+                .$$("tr")
+                .find(text(createdSpend.getDescription()))
+                .$$("td")
                 .first()
                 .scrollTo()
                 .click();

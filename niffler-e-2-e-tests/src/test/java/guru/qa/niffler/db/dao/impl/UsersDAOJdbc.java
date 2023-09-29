@@ -19,13 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
+public class UsersDAOJdbc implements AuthUserDAO, UserDataUserDAO {
 
     private static DataSource authDs = DataSourceProvider.INSTANCE.getDataSource(ServiceDB.AUTh);
     private static DataSource userDataDs = DataSourceProvider.INSTANCE.getDataSource(ServiceDB.USERDATA);
 
     @Override
-    public int createUser(AuthUserEntity user) {
+    public void createUser(AuthUserEntity user) {
         UUID generatedUserId = null;
 
         try (Connection conn = authDs.getConnection()) {
@@ -76,8 +76,6 @@ public class AuthUserDAOJdbc implements AuthUserDAO, UserDataUserDAO {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-        return 0;
     }
 
     @Override
