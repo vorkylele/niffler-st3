@@ -16,7 +16,7 @@ import static guru.qa.niffler.db.model.CurrencyValues.RUB;
 
 public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCallback, ParameterResolver {
 
-    public static ExtensionContext.Namespace NAMESPACEDBUSER = ExtensionContext.Namespace.create(DBUserExtension.class);
+    public static ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(DBUserExtension.class);
     private AuthUserDAO authUserDAO;
     private UserDataUserDAO userDataUserDAO;
 
@@ -32,7 +32,7 @@ public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCa
             AuthUserEntity userAuthFromDb = authUserDAO.getUserByName(user.getUsername());
             userDataUserDAO.createUserInUserData(userAuthFromDb.toUserDataEntity(RUB));
 
-            context.getStore(NAMESPACEDBUSER).put(context.getUniqueId(), user);
+            context.getStore(NAMESPACE).put(context.getUniqueId(), user);
         }
     }
 
@@ -41,7 +41,7 @@ public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCa
         authUserDAO = new AuthUserDAOHibernate();
         userDataUserDAO = new UserDataDAOHibernate();
 
-        AuthUserEntity user = context.getStore(NAMESPACEDBUSER).get(context.getUniqueId(), AuthUserEntity.class);
+        AuthUserEntity user = context.getStore(NAMESPACE).get(context.getUniqueId(), AuthUserEntity.class);
         if (user != null) {
             userDataUserDAO.deleteUserFromUserData(user.getUsername());
             authUserDAO.deleteUser(user);
@@ -57,7 +57,7 @@ public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCa
     @Override
     public AuthUserEntity resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         return extensionContext
-                .getStore(NAMESPACEDBUSER)
+                .getStore(NAMESPACE)
                 .get(extensionContext.getUniqueId(), AuthUserEntity.class);
     }
 

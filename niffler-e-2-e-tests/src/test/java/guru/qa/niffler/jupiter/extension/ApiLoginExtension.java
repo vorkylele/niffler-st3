@@ -16,7 +16,7 @@ import org.openqa.selenium.Cookie;
 
 import java.io.IOException;
 
-import static guru.qa.niffler.jupiter.extension.DBUserExtension.NAMESPACEDBUSER;
+import static guru.qa.niffler.jupiter.extension.DBUserExtension.NAMESPACE;
 
 public class ApiLoginExtension implements BeforeEachCallback, AfterTestExecutionCallback {
 
@@ -31,7 +31,7 @@ public class ApiLoginExtension implements BeforeEachCallback, AfterTestExecution
             DBUser dbUserAnnotation = extensionContext.getRequiredTestMethod().getAnnotation(DBUser.class);
             if (dbUserAnnotation != null || username.isEmpty() || password.isEmpty()) {
                 AuthUserEntity user = extensionContext
-                        .getStore(NAMESPACEDBUSER)
+                        .getStore(NAMESPACE)
                         .get(extensionContext.getUniqueId(), AuthUserEntity.class);
                 username = user.getUsername();
                 password = user.getPassword();
