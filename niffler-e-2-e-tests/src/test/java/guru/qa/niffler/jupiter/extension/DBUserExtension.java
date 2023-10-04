@@ -42,15 +42,16 @@ public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCa
         userDataUserDAO = new UserDataDAOHibernate();
 
         AuthUserEntity user = context.getStore(NAMESPACEDBUSER).get(context.getUniqueId(), AuthUserEntity.class);
-        userDataUserDAO.deleteUserFromUserData(user.getUsername());
-        authUserDAO.deleteUser(user);
+        if (user != null) {
+            userDataUserDAO.deleteUserFromUserData(user.getUsername());
+            authUserDAO.deleteUser(user);
+        }
     }
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return parameterContext.getParameter()
-                .getType()
-                .isAssignableFrom(AuthUserEntity.class);
+        return parameterContext.getParameter().getType().isAssignableFrom(AuthUserEntity.class)
+                && extensionContext.getRequiredTestMethod().isAnnotationPresent(DBUser.class);
     }
 
     @Override

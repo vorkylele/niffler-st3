@@ -1,5 +1,6 @@
 package guru.qa.niffler.page;
 
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import guru.qa.niffler.model.SpendJson;
 import io.qameta.allure.Step;
@@ -20,6 +21,13 @@ public class MainPage extends BasePage {
 
 
     // Actions
+
+    @Step("Открыть 'MainPage'")
+    public MainPage openMainPage() {
+        Selenide.open(config.nifflerFrontUrl() + "/main");
+        return new MainPage();
+    }
+
     @Step("Проверить отображение 'MainPage'")
     public MainPage checkVisibleMainPage() {
         mainPage.should(visible);
