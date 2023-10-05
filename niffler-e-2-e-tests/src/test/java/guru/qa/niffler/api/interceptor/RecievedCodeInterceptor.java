@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.List;
 
 public class RecievedCodeInterceptor implements Interceptor {
+    private static final String JSESSIONID = "JSESSIONID";
+    private static final String XSRF_TOKEN = "XSRF-TOKEN";
     @Override
     public Response intercept(Chain chain) throws IOException {
         CookieContext cookieContext = CookieContext.getInstance();
@@ -17,9 +19,9 @@ public class RecievedCodeInterceptor implements Interceptor {
             for (String header : setCookieHeader) {
                 for (String cookie : header.split(";")) {
                     String[] rawCookie = cookie.split("=");
-                    if (rawCookie[0].equals("JSESSIONID")) {
+                    if (JSESSIONID.equals(rawCookie[0])) {
                         cookieContext.setJsessionid(rawCookie.length == 2 ? rawCookie[1] : null);
-                    } else if (rawCookie[0].equals("XSRF-TOKEN")) {
+                    } else if (XSRF_TOKEN.equals(rawCookie[0])) {
                         cookieContext.setXsrf(rawCookie.length == 2 ? rawCookie[1] : null);
                     }
                 }
