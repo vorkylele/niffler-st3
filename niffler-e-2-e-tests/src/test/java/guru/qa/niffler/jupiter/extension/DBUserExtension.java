@@ -17,13 +17,13 @@ import static guru.qa.niffler.db.model.CurrencyValues.RUB;
 public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCallback, ParameterResolver {
 
     public static ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(DBUserExtension.class);
-    private AuthUserDAO authUserDAO;
-    private UserDataUserDAO userDataUserDAO;
+//    private AuthUserDAO authUserDAO;
+//    private UserDataUserDAO userDataUserDAO;
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        authUserDAO = new AuthUserDAOHibernate();
-        userDataUserDAO = new UserDataDAOHibernate();
+        AuthUserDAO authUserDAO = new AuthUserDAOHibernate();
+        UserDataUserDAO userDataUserDAO = new UserDataDAOHibernate();
 
         if (context.getRequiredTestMethod().isAnnotationPresent(DBUser.class)) {
             DBUser annotation = context.getRequiredTestMethod().getAnnotation(DBUser.class);
@@ -38,8 +38,8 @@ public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCa
 
     @Override
     public void afterTestExecution(ExtensionContext context) throws Exception {
-        authUserDAO = new AuthUserDAOHibernate();
-        userDataUserDAO = new UserDataDAOHibernate();
+        AuthUserDAO authUserDAO = new AuthUserDAOHibernate();
+        UserDataUserDAO userDataUserDAO = new UserDataDAOHibernate();
 
         AuthUserEntity user = context.getStore(NAMESPACE).get(context.getUniqueId(), AuthUserEntity.class);
         if (user != null) {
