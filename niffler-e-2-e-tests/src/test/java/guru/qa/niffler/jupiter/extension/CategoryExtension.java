@@ -1,6 +1,5 @@
 package guru.qa.niffler.jupiter.extension;
 
-import guru.qa.niffler.api.CategoryService;
 import guru.qa.niffler.api.CategoryServiceClient;
 import guru.qa.niffler.jupiter.annotation.Category;
 import guru.qa.niffler.model.CategoryJson;
@@ -8,7 +7,7 @@ import org.junit.jupiter.api.extension.*;
 
 public class CategoryExtension implements BeforeEachCallback, ParameterResolver {
 
-    public static ExtensionContext.Namespace NAMESPACECATEGORY = ExtensionContext.Namespace.create(CategoryExtension.class);
+    public static ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(CategoryExtension.class);
 
     private CategoryServiceClient categoryService = new CategoryServiceClient();
 
@@ -20,7 +19,7 @@ public class CategoryExtension implements BeforeEachCallback, ParameterResolver 
             category.setCategory(annotation.category());
             category.setUsername(annotation.username());
             CategoryJson createdCategory = categoryService.addCategory(category);
-            context.getStore(NAMESPACECATEGORY).put("category", createdCategory);
+            context.getStore(NAMESPACE).put("category", createdCategory);
         }
     }
 
@@ -34,7 +33,7 @@ public class CategoryExtension implements BeforeEachCallback, ParameterResolver 
     @Override
     public CategoryJson resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         return extensionContext
-                .getStore(NAMESPACECATEGORY)
+                .getStore(NAMESPACE)
                 .get("category", CategoryJson.class);
     }
 }

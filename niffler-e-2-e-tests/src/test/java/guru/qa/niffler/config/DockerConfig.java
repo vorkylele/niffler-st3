@@ -22,7 +22,12 @@ public class DockerConfig implements Config {
     }
 
     @Override
-    public String baseUri() {
-        return "frontend.niffler.dc";
+    public String nifflerFrontUrl() {
+        return "http://frontend.niffler.dc";
+    }
+
+    @Override
+    public String nifflerAuthUrl() {
+        return "http://auth.niffler.dc";
     }
 }

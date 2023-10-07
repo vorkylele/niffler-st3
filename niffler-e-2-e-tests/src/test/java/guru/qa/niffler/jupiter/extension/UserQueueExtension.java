@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutionCallback, ParameterResolver {
 
-    public static ExtensionContext.Namespace NAMESPACEUSER = ExtensionContext.Namespace.create(UserQueueExtension.class);
+    public static ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(UserQueueExtension.class);
 
     private static Map<User.UserType, Queue<UserJson>> usersQueue = new ConcurrentHashMap<>();
 
@@ -58,12 +58,12 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
                 candidatesForTest.put(userType, candidateForTest);
             }
         }
-        context.getStore(NAMESPACEUSER).put(getAllureId(context), candidatesForTest);
+        context.getStore(NAMESPACE).put(getAllureId(context), candidatesForTest);
     }
 
     @Override
     public void afterTestExecution(ExtensionContext context) throws Exception {
-        Map<User.UserType, UserJson> usersFromTest = context.getStore(NAMESPACEUSER).get(getAllureId(context), Map.class);
+        Map<User.UserType, UserJson> usersFromTest = context.getStore(NAMESPACE).get(getAllureId(context), Map.class);
         for (User.UserType userTypeFromTest: usersFromTest.keySet()) {
             usersQueue.get(userTypeFromTest).add(usersFromTest.get(userTypeFromTest));
         }
@@ -78,7 +78,7 @@ public class UserQueueExtension implements BeforeEachCallback, AfterTestExecutio
     @Override
     public UserJson resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         User.UserType userType = parameterContext.getParameter().getAnnotation(User.class).userType();
-        return (UserJson) extensionContext.getStore(NAMESPACEUSER).get(getAllureId(extensionContext), Map.class).get(userType);
+        return (UserJson) extensionContext.getStore(NAMESPACE).get(getAllureId(extensionContext), Map.class).get(userType);
     }
 
     private String getAllureId(ExtensionContext context) {

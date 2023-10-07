@@ -16,14 +16,14 @@ import static guru.qa.niffler.db.model.CurrencyValues.RUB;
 
 public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCallback, ParameterResolver {
 
-    public static ExtensionContext.Namespace NAMESPACEDBUSER = ExtensionContext.Namespace.create(DBUserExtension.class);
-    private AuthUserDAO authUserDAO;
-    private UserDataUserDAO userDataUserDAO;
+    public static ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(DBUserExtension.class);
+//    private AuthUserDAO authUserDAO;
+//    private UserDataUserDAO userDataUserDAO;
 
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
-        authUserDAO = new AuthUserDAOHibernate();
-        userDataUserDAO = new UserDataDAOHibernate();
+        AuthUserDAO authUserDAO = new AuthUserDAOHibernate();
+        UserDataUserDAO userDataUserDAO = new UserDataDAOHibernate();
 
         if (context.getRequiredTestMethod().isAnnotationPresent(DBUser.class)) {
             DBUser annotation = context.getRequiredTestMethod().getAnnotation(DBUser.class);
@@ -32,31 +32,32 @@ public class DBUserExtension implements BeforeEachCallback, AfterTestExecutionCa
             AuthUserEntity userAuthFromDb = authUserDAO.getUserByName(user.getUsername());
             userDataUserDAO.createUserInUserData(userAuthFromDb.toUserDataEntity(RUB));
 
-            context.getStore(NAMESPACEDBUSER).put(context.getUniqueId(), user);
+            context.getStore(NAMESPACE).put(context.getUniqueId(), user);
         }
     }
 
     @Override
     public void afterTestExecution(ExtensionContext context) throws Exception {
-        authUserDAO = new AuthUserDAOHibernate();
-        userDataUserDAO = new UserDataDAOHibernate();
+        AuthUserDAO authUserDAO = new AuthUserDAOHibernate();
+        UserDataUserDAO userDataUserDAO = new UserDataDAOHibernate();
 
-        AuthUserEntity user = context.getStore(NAMESPACEDBUSER).get(context.getUniqueId(), AuthUserEntity.class);
-        userDataUserDAO.deleteUserFromUserData(user.getUsername());
-        authUserDAO.deleteUser(user);
+        AuthUserEntity user = context.getStore(NAMESPACE).get(context.getUniqueId(), AuthUserEntity.class);
+        if (user != null) {
+            userDataUserDAO.deleteUserFromUserData(user.getUsername());
+            authUserDAO.deleteUser(user);
+        }
     }
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
-        return parameterContext.getParameter()
-                .getType()
-                .isAssignableFrom(AuthUserEntity.class);
+        return parameterContext.getParameter().getType().isAssignableFrom(AuthUserEntity.class)
+                && extensionContext.getRequiredTestMethod().isAnnotationPresent(DBUser.class);
     }
 
     @Override
     public AuthUserEntity resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         return extensionContext
-                .getStore(NAMESPACEDBUSER)
+                .getStore(NAMESPACE)
                 .get(extensionContext.getUniqueId(), AuthUserEntity.class);
     }
 

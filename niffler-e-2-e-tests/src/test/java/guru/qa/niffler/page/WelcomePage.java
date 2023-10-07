@@ -14,7 +14,7 @@ public class WelcomePage extends BasePage {
     // Actions
     @Step("Открыть 'WelcomePage'")
     public WelcomePage openWelcomePage() {
-        Selenide.open(config.baseUri());
+        Selenide.open(config.nifflerFrontUrl());
         return new WelcomePage();
     }
 

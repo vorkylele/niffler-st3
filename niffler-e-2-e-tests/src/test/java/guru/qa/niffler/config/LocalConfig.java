@@ -30,7 +30,12 @@ public class LocalConfig implements Config {
     }
 
     @Override
-    public String baseUri() {
+    public String nifflerFrontUrl() {
         return "http://127.0.0.1:3000";
+    }
+
+    @Override
+    public String nifflerAuthUrl() {
+        return "http://127.0.0.1:9000";
     }
 }
