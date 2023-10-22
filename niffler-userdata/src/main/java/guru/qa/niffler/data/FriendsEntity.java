@@ -8,8 +8,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-import java.util.Objects;
-
 @Entity
 @Table(name = "friends")
 @IdClass(FriendsId.class)
@@ -50,18 +48,5 @@ public class FriendsEntity {
 
     public void setPending(boolean pending) {
         this.pending = pending;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FriendsEntity that = (FriendsEntity) o;
-        return pending == that.pending && Objects.equals(user, that.user) && Objects.equals(friend, that.friend);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(user, friend, pending);
     }
 }
